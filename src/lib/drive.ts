@@ -54,7 +54,7 @@ export async function downloadDriveFile(
   await ensureOk(response)
   const data: unknown = await response.json()
   if (!isSyncPayload(data)) {
-    throw new DriveError('The Drive backup is not a valid Flipwise file', 422)
+    throw new DriveError('The Drive backup is not a valid FlipCard file', 422)
   }
   return data
 }

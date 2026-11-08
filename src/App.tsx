@@ -295,7 +295,7 @@ export default function App() {
           <span className="brand__mark">
             <LogoIcon />
           </span>
-          <span className="brand__name">Flipwise</span>
+          <span className="brand__name">FlipCard</span>
         </div>
         <div className="topbar__actions">
           <AccountMenu
