@@ -15,6 +15,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Flipwise — Spaced repetition flip cards</title>
+    <script>
+      try {
+        var stored = JSON.parse(
+          localStorage.getItem('flipwise.settings.v1') || '{}',
+        )
+        document.documentElement.dataset.theme =
+          stored.theme === 'light' ? 'light' : 'dark'
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

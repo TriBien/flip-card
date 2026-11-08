@@ -25,6 +25,12 @@ export function isSyncPayload(value: unknown): value is SyncPayload {
   if (!Array.isArray(payload.cards)) return false
   if (typeof payload.settings !== 'object' || payload.settings === null) return false
   if (typeof payload.settings.spacedRepetition !== 'boolean') return false
+  if (
+    payload.settings.theme !== 'dark' &&
+    payload.settings.theme !== 'light'
+  ) {
+    return false
+  }
   return payload.cards.every(
     (card) =>
       typeof card === 'object' &&
@@ -40,7 +46,10 @@ export function buildPayload(data: SyncData): SyncPayload {
     version: 1,
     updatedAt: Date.now(),
     cards: data.cards,
-    settings: data.settings,
+    settings: {
+      spacedRepetition: data.settings.spacedRepetition,
+      theme: data.settings.theme,
+    },
   }
 }
 
@@ -60,10 +69,16 @@ export function mergeData(local: SyncData, remote: SyncPayload): SyncData {
     }
   }
 
+  const theme =
+    remote.settings.theme === 'light' || remote.settings.theme === 'dark'
+      ? remote.settings.theme
+      : local.settings.theme
+
   return {
     cards: [...cards.values()].sort((a, b) => b.createdAt - a.createdAt),
     settings: {
       spacedRepetition: remote.settings.spacedRepetition,
+      theme,
     },
   }
 }

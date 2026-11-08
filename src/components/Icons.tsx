@@ -89,6 +89,41 @@ export function ArrowRightIcon() {
   )
 }
 
+export function SettingsIcon() {
+  return (
+    <Icon>
+      <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+      <path d="M19.5 12a7.5 7.5 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-2-1.2L14.5 3h-4l-.5 2.6a7.5 7.5 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7.5 7.5 0 0 0 4.5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 2 1.2l.5 2.6h4l.5-2.6a7.5 7.5 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z" />
+    </Icon>
+  )
+}
+
+export function UserIcon() {
+  return (
+    <Icon>
+      <path d="M20 21a8 8 0 0 0-16 0" />
+      <circle cx="12" cy="7" r="4" />
+    </Icon>
+  )
+}
+
+export function SunIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </Icon>
+  )
+}
+
+export function MoonIcon() {
+  return (
+    <Icon>
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+    </Icon>
+  )
+}
+
 export function SignOutIcon() {
   return (
     <Icon>

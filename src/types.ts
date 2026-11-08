@@ -13,6 +13,9 @@ export interface Card {
   reviewCount: number
 }
 
+export type Theme = 'dark' | 'light'
+
 export interface Settings {
   spacedRepetition: boolean
+  theme: Theme
 }

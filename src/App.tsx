@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import './App.css'
-import type { Card, Rating, Settings } from './types'
+import type { Card, Rating, Settings, Theme } from './types'
 import {
   RATINGS,
   createCard,
@@ -19,19 +19,31 @@ import { normalizeCard, type SyncData } from './lib/sync'
 import { useDriveSync } from './hooks/useDriveSync'
 import FlipCard from './components/FlipCard'
 import CardEditor from './components/CardEditor'
-import AccountBar from './components/AccountBar'
+import AccountMenu from './components/AccountMenu'
+import SettingsSheet from './components/SettingsSheet'
 import {
   ArrowRightIcon,
   CheckIcon,
   LogoIcon,
   PlusIcon,
+  SettingsIcon,
   SparklesIcon,
 } from './components/Icons'
 
 const CARDS_KEY = 'flipwise.cards.v1'
 const SETTINGS_KEY = 'flipwise.settings.v1'
 const TOUCHED_KEY = 'flipwise.touched.v1'
-const DEFAULT_SETTINGS: Settings = { spacedRepetition: true }
+const DEFAULT_SETTINGS: Settings = {
+  spacedRepetition: true,
+  theme: 'dark',
+}
+
+function normalizeSettings(value?: Partial<Settings> | null): Settings {
+  return {
+    spacedRepetition: value?.spacedRepetition !== false,
+    theme: value?.theme === 'light' ? 'light' : 'dark',
+  }
+}
 
 type View = 'due' | 'all'
 
@@ -67,15 +79,16 @@ function loadTouched(): boolean {
 
 export default function App() {
   const [cards, setCards] = useState<Card[]>(loadCards)
-  const [settings, setSettings] = useState<Settings>(() => {
-    const stored = loadStored<Settings>(SETTINGS_KEY, DEFAULT_SETTINGS)
-    return { spacedRepetition: stored.spacedRepetition !== false }
-  })
+  const [settings, setSettings] = useState<Settings>(() =>
+    normalizeSettings(loadStored<Settings>(SETTINGS_KEY, DEFAULT_SETTINGS)),
+  )
   const [view, setView] = useState<View>(() =>
-    loadStored<Settings>(SETTINGS_KEY, DEFAULT_SETTINGS).spacedRepetition === false
+    normalizeSettings(loadStored<Settings>(SETTINGS_KEY, DEFAULT_SETTINGS))
+      .spacedRepetition === false
       ? 'all'
       : 'due',
   )
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const [editing, setEditing] = useState<Card | 'new' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -89,6 +102,15 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
   }, [settings])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme
+    const themeMeta = document.querySelector('meta[name="theme-color"]')
+    themeMeta?.setAttribute(
+      'content',
+      settings.theme === 'light' ? '#f4f4fa' : '#08080f',
+    )
+  }, [settings.theme])
 
   useEffect(() => {
     const tick = () => setNow(Date.now())
@@ -175,7 +197,7 @@ export default function App() {
   const handleToggleSpacedRepetition = () => {
     markLocalChange()
     const next = !spacedRepetition
-    setSettings({ spacedRepetition: next })
+    setSettings((current) => ({ ...current, spacedRepetition: next }))
     setView(next ? 'due' : 'all')
     setNow(Date.now())
     showToast(
@@ -183,6 +205,12 @@ export default function App() {
         ? 'Spaced repetition on — only due cards are shown'
         : 'Spaced repetition off — showing every card',
     )
+  }
+
+  const handleThemeChange = (theme: Theme) => {
+    markLocalChange()
+    setSettings((current) => ({ ...current, theme }))
+    showToast(theme === 'light' ? 'Light theme enabled' : 'Dark theme enabled')
   }
 
   const handleSave = ({ front, back }: { front: string; back: string }) => {
@@ -269,31 +297,27 @@ export default function App() {
           </span>
           <span className="brand__name">Flipwise</span>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={spacedRepetition}
-          aria-label="Spaced repetition"
-          className={`sr-switch${spacedRepetition ? ' is-on' : ''}`}
-          onClick={handleToggleSpacedRepetition}
-        >
-          <span className="sr-switch__label">Spaced repetition</span>
-          <span className="sr-switch__track">
-            <span className="sr-switch__thumb" />
-          </span>
-        </button>
+        <div className="topbar__actions">
+          <AccountMenu
+            status={sync.status}
+            user={sync.user}
+            lastSyncedAt={sync.lastSyncedAt}
+            error={sync.error}
+            now={now}
+            onSignIn={sync.signIn}
+            onSignOut={sync.signOut}
+            onRetry={sync.retry}
+          />
+          <button
+            type="button"
+            className="icon-btn icon-btn--lg"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Open settings"
+          >
+            <SettingsIcon />
+          </button>
+        </div>
       </header>
-
-      <AccountBar
-        status={sync.status}
-        user={sync.user}
-        lastSyncedAt={sync.lastSyncedAt}
-        error={sync.error}
-        now={now}
-        onSignIn={sync.signIn}
-        onSignOut={sync.signOut}
-        onRetry={sync.retry}
-      />
 
       <main className="main">
         <section className="hero">
@@ -416,6 +440,16 @@ export default function App() {
       >
         <PlusIcon />
       </button>
+
+      {settingsOpen && (
+        <SettingsSheet
+          spacedRepetition={spacedRepetition}
+          theme={settings.theme}
+          onToggleSpacedRepetition={handleToggleSpacedRepetition}
+          onThemeChange={handleThemeChange}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {editing !== null && (
         <CardEditor
