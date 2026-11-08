@@ -957,39 +957,23 @@
   background: rgba(251, 113, 133, 0.1);
 }
 
-/* ---------- Bottom dock ---------- */
+/* ---------- Floating add button ---------- */
 
-.dock {
+.fab {
   position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   z-index: 20;
-  padding: 18px 18px calc(16px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, transparent, rgba(8, 8, 15, 0.78) 36%, var(--bg) 76%);
-  pointer-events: none;
-}
-
-.dock__inner {
-  max-width: var(--app-width);
-  margin: 0 auto;
-  pointer-events: auto;
-}
-
-.btn-add {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  width: 100%;
-  padding: 15px 20px;
+  width: 58px;
+  height: 58px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #8b5cf6, #6d28d9 60%, #4f46e5);
   color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
   box-shadow:
     0 10px 30px -8px rgba(109, 40, 217, 0.65),
     inset 0 1px 0 rgba(255, 255, 255, 0.26);
@@ -998,19 +982,19 @@
     box-shadow 0.2s ease;
 }
 
-.btn-add:hover {
+.fab:hover {
   box-shadow:
     0 14px 36px -8px rgba(109, 40, 217, 0.8),
     inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
-.btn-add:active {
-  transform: scale(0.985);
+.fab:active {
+  transform: scale(0.96);
 }
 
-.btn-add svg {
-  width: 18px;
-  height: 18px;
+.fab svg {
+  width: 24px;
+  height: 24px;
 }
 
 /* ---------- Editor sheet ---------- */

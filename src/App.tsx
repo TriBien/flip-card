@@ -407,17 +407,15 @@ export default function App() {
         )}
       </main>
 
-      <div className="dock">
-        <div className="dock__inner">
-          <button
-            type="button"
-            className="btn-add"
-            onClick={() => setEditing('new')}
-          >
-            <PlusIcon /> New card
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        className="fab"
+        aria-label="New card"
+        title="New card"
+        onClick={() => setEditing('new')}
+      >
+        <PlusIcon />
+      </button>
 
       {editing !== null && (
         <CardEditor
