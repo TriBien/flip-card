@@ -5,6 +5,7 @@ export interface Card {
   front: string
   back: string
   createdAt: number
+  updatedAt: number
   interval: number
   dueAt: number
   lastReviewedAt: number | null

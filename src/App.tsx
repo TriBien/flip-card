@@ -15,8 +15,11 @@ import {
   scheduleCard,
 } from './lib/scheduler'
 import { sampleCards } from './lib/samples'
+import { normalizeCard, type SyncData } from './lib/sync'
+import { useDriveSync } from './hooks/useDriveSync'
 import FlipCard from './components/FlipCard'
 import CardEditor from './components/CardEditor'
+import AccountBar from './components/AccountBar'
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -27,6 +30,7 @@ import {
 
 const CARDS_KEY = 'flipwise.cards.v1'
 const SETTINGS_KEY = 'flipwise.settings.v1'
+const TOUCHED_KEY = 'flipwise.touched.v1'
 const DEFAULT_SETTINGS: Settings = { spacedRepetition: true }
 
 type View = 'due' | 'all'
@@ -50,7 +54,15 @@ function loadCards(): Card[] {
   } catch {
     return sampleCards()
   }
-  return loadStored<Card[]>(CARDS_KEY, [])
+  return loadStored<Card[]>(CARDS_KEY, []).map(normalizeCard)
+}
+
+function loadTouched(): boolean {
+  try {
+    return localStorage.getItem(TOUCHED_KEY) === '1'
+  } catch {
+    return false
+  }
 }
 
 export default function App() {
@@ -67,6 +79,7 @@ export default function App() {
   const [now, setNow] = useState(() => Date.now())
   const [editing, setEditing] = useState<Card | 'new' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [hasLocalChanges, setHasLocalChanges] = useState(loadTouched)
   const toastTimeout = useRef<number | undefined>(undefined)
 
   useEffect(() => {
@@ -105,6 +118,30 @@ export default function App() {
     toastTimeout.current = window.setTimeout(() => setToast(null), 2800)
   }, [])
 
+  const markLocalChange = useCallback(() => {
+    setHasLocalChanges(true)
+    try {
+      localStorage.setItem(TOUCHED_KEY, '1')
+    } catch {
+      return
+    }
+  }, [])
+
+  const handleRemoteData = useCallback((data: SyncData) => {
+    setCards(data.cards)
+    setSettings(data.settings)
+    setView(data.settings.spacedRepetition ? 'due' : 'all')
+    setNow(Date.now())
+  }, [])
+
+  const sync = useDriveSync({
+    cards,
+    settings,
+    hasLocalChanges,
+    onRemoteData: handleRemoteData,
+    onNotice: showToast,
+  })
+
   const spacedRepetition = settings.spacedRepetition
 
   const dueCards = useMemo(
@@ -136,6 +173,7 @@ export default function App() {
   const closeEditor = useCallback(() => setEditing(null), [])
 
   const handleToggleSpacedRepetition = () => {
+    markLocalChange()
     const next = !spacedRepetition
     setSettings({ spacedRepetition: next })
     setView(next ? 'due' : 'all')
@@ -148,14 +186,18 @@ export default function App() {
   }
 
   const handleSave = ({ front, back }: { front: string; back: string }) => {
+    markLocalChange()
     if (editing === 'new') {
       setCards((current) => [createCard(front, back), ...current])
       setNow(Date.now())
       showToast('Card added')
     } else if (editing) {
+      const updatedAt = Date.now()
       setCards((current) =>
         current.map((card) =>
-          card.id === editing.id ? { ...card, front, back } : card,
+          card.id === editing.id
+            ? { ...card, front, back, updatedAt }
+            : card,
         ),
       )
       showToast('Card updated')
@@ -164,12 +206,14 @@ export default function App() {
   }
 
   const handleDelete = (id: string) => {
+    markLocalChange()
     setCards((current) => current.filter((card) => card.id !== id))
     setEditing(null)
     showToast('Card deleted')
   }
 
   const handleRate = (card: Card, rating: Rating) => {
+    markLocalChange()
     const updated = scheduleCard(card, rating)
     setCards((current) =>
       current.map((item) => (item.id === card.id ? updated : item)),
@@ -181,6 +225,7 @@ export default function App() {
   }
 
   const addSamples = () => {
+    markLocalChange()
     setCards((current) => [...sampleCards(), ...current])
     setView(spacedRepetition ? 'due' : 'all')
     setNow(Date.now())
@@ -238,6 +283,17 @@ export default function App() {
           </span>
         </button>
       </header>
+
+      <AccountBar
+        status={sync.status}
+        user={sync.user}
+        lastSyncedAt={sync.lastSyncedAt}
+        error={sync.error}
+        now={now}
+        onSignIn={sync.signIn}
+        onSignOut={sync.signOut}
+        onRetry={sync.retry}
+      />
 
       <main className="main">
         <section className="hero">

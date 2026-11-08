@@ -51,6 +51,7 @@ export function createCard(front: string, back: string): Card {
     front: front.trim(),
     back: back.trim(),
     createdAt: now,
+    updatedAt: now,
     interval: 0,
     dueAt: now,
     lastReviewedAt: null,
@@ -69,6 +70,7 @@ export function scheduleCard(card: Card, rating: Rating, now = Date.now()): Card
   const interval = nextInterval(card, rating)
   return {
     ...card,
+    updatedAt: now,
     interval,
     dueAt: now + interval,
     lastReviewedAt: now,
