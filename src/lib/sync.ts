@@ -19,16 +19,28 @@ export function normalizeCard(card: Card): Card {
   return { ...card, updatedAt: fallback }
 }
 
+export function normalizeSettings(
+  settings: Partial<Settings> | null | undefined,
+  fallback: Settings,
+): Settings {
+  const theme = settings?.theme
+  return {
+    spacedRepetition:
+      typeof settings?.spacedRepetition === 'boolean'
+        ? settings.spacedRepetition
+        : fallback.spacedRepetition,
+    theme: theme === 'dark' || theme === 'light' ? theme : fallback.theme,
+  }
+}
+
 export function isSyncPayload(value: unknown): value is SyncPayload {
   if (typeof value !== 'object' || value === null) return false
   const payload = value as Partial<SyncPayload>
   if (!Array.isArray(payload.cards)) return false
   if (typeof payload.settings !== 'object' || payload.settings === null) return false
   if (typeof payload.settings.spacedRepetition !== 'boolean') return false
-  if (
-    payload.settings.theme !== 'dark' &&
-    payload.settings.theme !== 'light'
-  ) {
+  const theme = payload.settings.theme
+  if (theme !== undefined && theme !== 'dark' && theme !== 'light') {
     return false
   }
   return payload.cards.every(
@@ -69,17 +81,9 @@ export function mergeData(local: SyncData, remote: SyncPayload): SyncData {
     }
   }
 
-  const theme =
-    remote.settings.theme === 'light' || remote.settings.theme === 'dark'
-      ? remote.settings.theme
-      : local.settings.theme
-
   return {
     cards: [...cards.values()].sort((a, b) => b.createdAt - a.createdAt),
-    settings: {
-      spacedRepetition: remote.settings.spacedRepetition,
-      theme,
-    },
+    settings: normalizeSettings(remote.settings, local.settings),
   }
 }
 

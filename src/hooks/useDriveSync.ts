@@ -18,6 +18,7 @@ import {
   dataSignature,
   mergeData,
   normalizeCard,
+  normalizeSettings,
   type SyncData,
 } from '../lib/sync'
 
@@ -166,7 +167,10 @@ export function useDriveSync({
         const adoptRemote = remote !== null && !hasLocalChangesRef.current
         const merged = remote
           ? adoptRemote
-            ? remote
+            ? {
+                cards: remote.cards,
+                settings: normalizeSettings(remote.settings, local.settings),
+              }
             : mergeData(local, remote)
           : local
         const signature = dataSignature(merged.cards, merged.settings)
